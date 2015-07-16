@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mysql/mysql.h>
+#include <thread>
+#include <pthread.h>
+#include <chrono>
 #include <time.h>
 using namespace std;
 int main()
@@ -14,7 +17,7 @@ int main()
     char *server = "localhost";
     char *user = "root";
     char *password = "1234";
-    char *database = "gateway";
+    char *database = "history";
 
     conn = mysql_init(NULL);
 
@@ -24,17 +27,30 @@ int main()
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
-    char * comm = "show tables";
-    if (mysql_query(conn, comm)) {
-        fprintf(stderr, "%s\n", mysql_error(conn));
-        exit(1);
+    char * comm = "SELECT * FROM HISTORICALDATA";
+    while(true)
+    {
+        if (mysql_query(conn, comm)) {
+            fprintf(stderr, "%s\n", mysql_error(conn));
+            exit(1);
+        }
+        res = mysql_use_result(conn);
+        /* output table name */
+        //printf("MySQL Tables in mysql database:\n");
+
+        printf("+-----------------------------------------------------------------------------------------------+\n");
+        printf("| deviceidentifier | sensoridentifier         | datetime            | value                     |\n");
+        printf("+-----------------------------------------------------------------------------------------------+\n");
+        while ((row = mysql_fetch_row(res)) != NULL) {
+            printf("| ");
+            //for(int i=0; i<4; i++)
+            printf("%-17s| %-25s| %-20s| %-26s|", row[0], row[1], row[2], row[3]);
+            printf("\n");
+        }
+        printf("+-----------------------------------------------------------------------------------------------+\n");
+        this_thread::sleep_for(chrono::seconds(3));
+        /* close connection */
     }
-    res = mysql_use_result(conn);
-    /* output table name */
-    printf("MySQL Tables in mysql database:\n");
-    while ((row = mysql_fetch_row(res)) != NULL)
-        printf("%s \n", row[0]);
-    /* close connection */
     mysql_free_result(res);
     mysql_close(conn);
 
