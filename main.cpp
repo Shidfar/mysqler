@@ -7,6 +7,11 @@
 #include <pthread.h>
 #include <chrono>
 #include <time.h>
+
+/// SHOW COLUMNS FROM ZB_DEVICE; row[0] stores the names
+
+/// SELECT Max(CHAR_LENGTH(`device_name`)) AS Max FROM `ZB_DEVICE`;
+
 using namespace std;
 int main()
 {
@@ -14,10 +19,14 @@ int main()
     MYSQL_RES *res;
     MYSQL_ROW row;
 
+    string the_command;
+
+    getline(cin, the_command);
+
     char *server = "localhost";
     char *user = "root";
     char *password = "1234";
-    char *database = "history";
+    char *database = "zigbeedata";
 
     conn = mysql_init(NULL);
 
@@ -27,7 +36,8 @@ int main()
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
-    char * comm = "SELECT * FROM HISTORICALDATA";
+    //const char * comm = the_command.c_str();
+    const char * comm = "SELECT * FROM ZB_DEVICE";
     while(true)
     {
         if (mysql_query(conn, comm)) {
@@ -44,7 +54,7 @@ int main()
         while ((row = mysql_fetch_row(res)) != NULL) {
             printf("| ");
             //for(int i=0; i<4; i++)
-            printf("%-17s| %-25s| %-20s| %-26s|", row[0], row[1], row[2], row[3]);
+            printf("%-17s|", row[0]);
             printf("\n");
         }
         printf("+-----------------------------------------------------------------------------------------------+\n");
